@@ -1,3 +1,5 @@
+#!/usr/bin/env sh
+
 ## Ensure the app's dependencies are installed
 if [ $ENV = "prod" ]; then
     HEX_HTTP_TIMEOUT=120 MIX_ENV=$ENV mix deps.get --only prod
