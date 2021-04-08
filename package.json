@@ -19,7 +19,7 @@
 	"author": {
 		"name": "Solano Morales",
 		"email": "mail@solanomorales.com",
-		"url": ""
+		"url": "https://github.com/smorales/dockerutil"
 	},
 	"license": "ISC",
 	"devDependencies": {},
