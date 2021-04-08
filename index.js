@@ -62,13 +62,13 @@ program
 		'                         Compose file')
 	.option('-t, --timeout <TIMEOUT>', 'Specify a shutdown timeout in seconds.\n' +
 		'                         (default: 10)')
-    .action((options) => {
+    .action((options, command) => {
         // inquirer.prompt(questions).then((answers) =>  actions.addContact(answers))
-	    require('./src/cmd/Docker').down(options)
+	    require('./src/cmd/Docker').down(options, command)
     })
 
 program
-	.command('up <target>')
+	.command('up [target]')
 	.option('-d, --detach', 'Runs the container in detached mode.')
 	.option('--build', 'Build images before starting containers.')
 	.option('--exit-code-from <service>', 'Return the exit code of the selected service\n' +
@@ -76,8 +76,8 @@ program
 	.option('--abort-on-container-exit', 'Stops all containers if any container was\n' +
 		'                           stopped. Incompatible with --detach.')
 	.description('Runs the application in a given environment, e.g dev or prod.')
-	.action((target, options) => {
-		require('./src/cmd/Docker').up(target, options)
+	.action((target, options, command) => {
+		require('./src/cmd/Docker').up(target, options, command)
 	})
 	.addHelpText('after', `\nExamples:
   $ dockerutil up dev

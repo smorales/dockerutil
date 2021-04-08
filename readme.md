@@ -1,5 +1,7 @@
 # Dockerutil
 
+Dockerutil is a commandline utility which helps to setup docker environments for Elixir/Phoenix or Laravel projetcs.
+
 ## Install
 ```shell
 npm install -g @smorales/dockerutil

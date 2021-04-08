@@ -1,10 +1,12 @@
 const shell = require('shelljs');
+const Str = require('../util/Str');
 
 class Config
 {
 	static create(input)
 	{
 		Config.setProperty('env', 'dev');
+		Config.setProperty('PROJECT_NAME', Str.toCase(input.projectName, '_'));
 		Config.setProperty('BUILD_NUM', '0.0.1');
 		Config.setProperty('IMAGE_NAME', input.imageName);
 		Config.setProperty('CONTAINER_NAME', input.containerName);

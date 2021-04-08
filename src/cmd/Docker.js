@@ -1,6 +1,4 @@
 const shell = require('shelljs');
-const chalk = require('chalk');
-const Project = require('../util/Project')
 const Config = require('./Config')
 
 class Docker {
@@ -18,52 +16,47 @@ class Docker {
 	
 	test(options)
 	{
-		// let env = Config.dockerutilDir()+'/.env';
-		// shell.sed('-i', /.*ENV=.*/g, `ENV=test`, env);
-		
 		Config.setEnvProperty('env', 'test');
 		shell.cd(Config.dockerutilDir());
+		let projectName = Config.getValue('PROJECT_NAME');
 		
-		let child = shell.exec('docker-compose up --build --exit-code-from test test');
+		let child = shell.exec(`docker-compose -p test_${projectName} up --build --exit-code-from test test`);
 		
 		let removeVolumes = options.removeVolumes ? '-v' : ''
-		shell.exec(`docker-compose down ${removeVolumes}`);
+		shell.exec(`docker-compose -p test_${projectName} down ${removeVolumes}`);
 		
 		process.exit(child.code);
 	}
 	
-	down(options)
+	down(options, command)
 	{
+		let projectName = Config.getValue('PROJECT_NAME');
 		shell.cd(Config.dockerutilDir());
-		shell.exec('docker-compose down '+this.getArgs());
+		shell.exec(this.buildCommand(command, projectName));
 	}
 	
-	up(target, options)
+	up(target, options, command)
 	{
-		// if(!['dev', 'prod'].includes(target))
-		// {
-		// 	console.error(chalk.yellow('Invalid argument: '), chalk.red(target));
-		// 	console.error(chalk.yellow('Valid values are'), chalk.green('dev'), chalk.yellow('or'), chalk.green('prod')+chalk.yellow('.'));
-		// 	process.exit(1);
-		// }
+		if(!target) target = 'dev';
 		
-		// let env = process.cwd()+'/docker/.env';
-		// shell.sed('-i', /.*ENV=.*/g, `ENV=${target}`, env);
-		// shell.cd(Config.dockerutilDir());
+		let projectName = Config.getValue('PROJECT_NAME');
+		let cmd = this.buildCommand(command, projectName, target);
+		
 		Config.setEnvProperty('env', target);
-		
 		shell.cd(Config.dockerutilDir());
-		shell.exec('docker-compose up '+this.getArgs());
+		
+		shell.exec(cmd, {async:true});
+		process.on('SIGINT', () =>
+		{
+			shell.exec(`docker-compose -p ${projectName} down`);
+		})
 	}
 	
-	getArgs()
+	buildCommand(command, projectName, appendix = '')
 	{
-		let args = '';
-		for (let i = 3; i < process.argv.length; i++) {
-			args += ' ' + process.argv[i];
-		}
-		return args;
+		return `docker-compose -p ${projectName} `+command.parent.args.join(' ')+' '+appendix;
 	}
+	
 }
 
 module.exports = new Docker();
