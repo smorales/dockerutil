@@ -18,43 +18,47 @@ class Docker {
 	{
 		Config.setEnvProperty('env', 'test');
 		shell.cd(Config.dockerutilDir());
-		let projectName = Config.getValue('PROJECT_NAME');
-		
-		let child = shell.exec(`docker-compose -p test_${projectName} up --build --exit-code-from test test`);
 		
 		let removeVolumes = options.removeVolumes ? '-v' : ''
-		shell.exec(`docker-compose -p test_${projectName} down ${removeVolumes}`);
+		let imageName = Config.getValue('IMAGE_NAME');
+		let child = shell.exec(`docker-compose -p test_${imageName} up --build --exit-code-from test test`);
+		
+		shell.exec(`docker-compose -p test_${imageName} down ${removeVolumes}`);
 		
 		process.exit(child.code);
 	}
 	
 	down(options, command)
 	{
-		let projectName = Config.getValue('PROJECT_NAME');
+		let imageName = Config.getValue('IMAGE_NAME');
 		shell.cd(Config.dockerutilDir());
-		shell.exec(this.buildCommand(command, projectName));
+		shell.exec(this.buildCommand(command, imageName));
 	}
 	
 	up(target, options, command)
 	{
 		if(!target) target = 'dev';
 		
-		let projectName = Config.getValue('PROJECT_NAME');
-		let cmd = this.buildCommand(command, projectName, target);
+		let imageName = Config.getValue('IMAGE_NAME');
+		let cmd = this.buildCommand(command, imageName, target);
 		
 		Config.setEnvProperty('env', target);
 		shell.cd(Config.dockerutilDir());
 		
 		shell.exec(cmd, {async:true});
-		process.on('SIGINT', () =>
+		
+		if(!options.detach)
 		{
-			shell.exec(`docker-compose -p ${projectName} down`);
-		})
+			process.on('SIGINT', () =>
+			{
+				shell.exec(`docker-compose -p ${imageName} down`);
+			})
+		}
 	}
 	
-	buildCommand(command, projectName, appendix = '')
+	buildCommand(command, imageName, appendix = '')
 	{
-		return `docker-compose -p ${projectName} `+command.parent.args.join(' ')+' '+appendix;
+		return `docker-compose -p ${imageName} `+command.parent.args.join(' ')+' '+appendix;
 	}
 	
 }
