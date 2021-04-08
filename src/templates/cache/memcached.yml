@@ -1,0 +1,12 @@
+  cache:
+    image: "memcached:alpine"
+    container_name: "cache.${DOCKER_UTIL_CONTAINER_NAME}"
+    ports:
+      - "11211:11211"
+    networks:
+      - prj.network
+    healthcheck:
+      test: [ "CMD", "echo stats | nc 127.0.0.1 11211"]
+      interval: 10s
+      timeout: 3s
+      retries: 5

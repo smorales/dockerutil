@@ -1,0 +1,2 @@
+      db:
+        condition: service_healthy

@@ -1,0 +1,22 @@
+  db:
+    image: "mysql/mysql-server:latest"
+    command: "--default-authentication-plugin=mysql_native_password --character-set-server=utf8 --collation-server=utf8_unicode_ci"
+    container_name: "db.${DOCKER_UTIL_CONTAINER_NAME}"
+    ports:
+      - "__DATABASE_CONTAINER_PORT__:3306"
+    networks:
+      - prj.network
+    environment:
+      - MYSQL_DATABASE=${DOCKER_UTIL_DATABASE_NAME}
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_USER_HOST=%
+      - MYSQL_USER=docker
+      - MYSQL_PASSWORD=secret
+    volumes:
+      - prj.db:/var/lib/mysql:delegated
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u docker --password=secret" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5

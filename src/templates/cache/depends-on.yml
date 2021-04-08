@@ -1,0 +1,2 @@
+      cache:
+        condition: service_healthy
