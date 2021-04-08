@@ -27,4 +27,6 @@ dockerutil init
 dockerutil up dev
 ```
 
-![dockerutil-setup](./images/dockerutil-setup.gif)
+![dockerutil-setup](https://raw.githubusercontent.com/smorales/dockerutil/master/images/dockerutil-setup.gif)
+
+
