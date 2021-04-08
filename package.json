@@ -1,6 +1,6 @@
 {
 	"name": "@smorales/dockerutil",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"description": "A command-line utility to manage docker projects.",
 	"preferGlobal": true,
 	"main": "index.js",
