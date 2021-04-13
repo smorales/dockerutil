@@ -33,9 +33,6 @@ services:
       - ../environment.env
     environment:
       - ENV=${DOCKER_UTIL_ENV}
-      - DATABASE_HOST=${DOCKER_UTIL_DATABASE_HOST}
-      - TEST_HOST=${DOCKER_UTIL_DATABASE_HOST}
-      - REDIS_HOST=${DOCKER_UTIL_CACHE_HOST}
     ports:
       - "__FRAMEWORK_CONTAINER_PORT__:4000"
     working_dir: /app
@@ -56,20 +53,22 @@ services:
       - ../environment.env
     environment:
       - ENV=${DOCKER_UTIL_ENV}
-      - DATABASE_HOST=${DOCKER_UTIL_DATABASE_HOST}
-      - TEST_HOST=${DOCKER_UTIL_DATABASE_HOST}
-      - REDIS_HOST=${DOCKER_UTIL_CACHE_HOST}
+      - DB_DATABASE=${DOCKER_UTIL_TEST_DATABASE_NAME}
+      - DB_HOST=${DOCKER_UTIL_TEST_DATABASE_HOST}
+      - DB_PORT=${DOCKER_UTIL_TEST_DATABASE_PORT}
     ports:
       - "__FRAMEWORK_CONTAINER_PORT__:4000"
     working_dir: /app
     networks:
       - prj.network
     depends_on:
-      __depends_on_db__
+      __depends_on_test_db__
       __depends_on_cache__
     volumes:
       - ../:/app:delegated
 
     __DB_TEMPLATE__
+    
+    __TEST_DB_TEMPLATE__
   
     __CACHE_TEMPLATE__

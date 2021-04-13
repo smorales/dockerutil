@@ -1,3 +1,5 @@
 .idea
 dockerutil
 node_modules
+/environment.env
+/.env

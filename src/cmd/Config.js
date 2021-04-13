@@ -6,12 +6,34 @@ class Config
 	static create(input)
 	{
 		Config.setProperty('env', 'dev');
+		Config.setProperty('PROJECT_TYPE', input.framework.short);
 		Config.setProperty('PROJECT_NAME', Str.toCase(input.projectName, '_'));
 		Config.setProperty('BUILD_NUM', '0.0.1');
 		Config.setProperty('IMAGE_NAME', input.imageName);
 		Config.setProperty('CONTAINER_NAME', input.containerName);
-		if(input._usesDatabase) Config.setProperty('DATABASE_NAME', input.databaseName);
-		if(input._usesDatabase) Config.setProperty('DATABASE_HOST', `db.${input.containerName}`);
+		
+		if(input._usesDatabase) 
+		{
+			Config.setProperty('TEST_DATABASE_NAME', `${input.database.name}_test`);
+			Config.setProperty('TEST_DATABASE_HOST', `test.db.${input.containerName}`);
+			Config.setProperty('TEST_DATABASE_PORT', input.database.port);
+			
+			Config.setProperty('DATABASE_NAME', input.database.name);
+			Config.setProperty('DATABASE_HOST', `db.${input.containerName}`);
+			Config.setProperty('DATABASE_PORT', input.database.port);
+			
+			if(input.framework.isElixir && input.database.isPostgres)
+			{
+				Config.setProperty('DATABASE_USERNAME', 'postgres');
+				Config.setProperty('DATABASE_PASSWORD', 'postgres');
+			}
+			else
+			{
+				Config.setProperty('DATABASE_USERNAME', 'docker');
+				Config.setProperty('DATABASE_PASSWORD', 'secret');
+			}
+		}
+		
 		if(input._usesCache) Config.setProperty('CACHE_HOST', `cache.${input.containerName}`);
 	}
 	
@@ -44,7 +66,7 @@ class Config
 		
 		if(Config.hasKey(key, 'env'))
 		{
-			let regExp = new RegExp(`${key}=.*`, 'g');
+			let regExp = new RegExp(`^${key}=.*`, 'g');
 			shell.sed('-i', regExp, `${key}=${value}`, [env]);
 		}
 		else
@@ -60,7 +82,8 @@ class Config
 		if(!shell.test('-e', configFile))
 			return false;
 		
-		return shell.grep(key+'=', configFile).toString() != '\n';
+		let regExp = new RegExp(`^${key}=`, 'g');
+		return shell.grep(regExp, configFile).toString() != '\n';
 	}
 	
 	static getValue(key)

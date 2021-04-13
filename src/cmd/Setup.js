@@ -24,15 +24,26 @@ class Setup
 		{
 			let input = { 
 				projectName: 'Laravel Test',
-				framework: 'laravel',
+				framework: { 
+					name: 'PHP/Laravel',
+					isLaravel: true,
+					isLumen: false,
+					isElixir: false 
+				},
 				phpVersion: '8.0',
 				_usesDatabase: false,
-				database: 'PostgreSQL',
+				database: { 
+					type: 'PostgreSQL',
+					port: 5432,
+					connection: 'pgsql',
+					isPostgres: true,
+					isMysql: false,
+					name: 'laravel_test' 
+				},
 				_usesCache: true,
 				cache: 'Redis',
 				imageName: 'laravel-test',
 				containerName: 'laravel-test',
-				databaseName: 'laravel_test',
 				runMigrateOnStartup: true
 			}
 			
@@ -121,11 +132,11 @@ class Setup
 	
 	getBaseImage(input)
 	{
-		if(input.framework == 'elixir') 
+		if(input.framework.isElixir) 
 		{
 			return 'FROM elixir:alpine';
 		}
-		else if(input.framework == 'laravel') 
+		else if(input.framework.isLaravel) 
 		{
 			return 'FROM catskillet/laravel-webstack:'+input.phpVersion;
 		}
@@ -145,17 +156,24 @@ class Setup
 		let composeFile = this.getDockerComposeFile();
 		if(input._usesDatabase)
 		{
-			let template = shell.cat(__dirname+'/../templates/db/'+input.database.toLowerCase()+'.yml');
-			let dependsOn = shell.cat(__dirname+'/../templates/db/depends-on.yml');
+			let template = shell.cat(__dirname+'/../templates/db/'+input.database.type.toLowerCase()+'.yml');
+			let templateTest = shell.cat(__dirname+'/../templates/db/'+input.database.type.toLowerCase()+'_test.yml');
+			let dependsOnDB = shell.cat(__dirname+'/../templates/db/depends-on.yml');
+			let dependsOnTestDB = shell.cat(__dirname+'/../templates/db/depends-on-test.yml');
 			shell.sed('-i', /.*__DB_TEMPLATE__.*/g, template, composeFile);
-			shell.sed('-i', /.*__depends_on_db__.*/g, dependsOn, composeFile);
-			shell.sed('-i', /__db_name__/g, input.databaseName, composeFile);
-			shell.sed('-i', /__DATABASE_CONTAINER_PORT__/g, input.databaseContainerPort, composeFile);
+			shell.sed('-i', /.*__TEST_DB_TEMPLATE__.*/g, templateTest, composeFile);
+			shell.sed('-i', /.*__depends_on_db__.*/g, dependsOnDB, composeFile);
+			shell.sed('-i', /.*__depends_on_test_db__.*/g, dependsOnTestDB, composeFile);
+			shell.sed('-i', /__db_name__/g, input.database.name, composeFile);
+			shell.sed('-i', /__DATABASE_CONTAINER_PORT__/g, input.database.port, composeFile);
+			shell.sed('-i', /__TEST_DATABASE_CONTAINER_PORT__/g, input.database.port, composeFile);
 		}
 		else
 		{
 			shell.sed('-i', /.*__DB_TEMPLATE__.*/g, '', composeFile);
+			shell.sed('-i', /.*__TEST_DB_TEMPLATE__.*/g, '', composeFile);
 			shell.sed('-i', /.*__depends_on_db__.*/g, '', composeFile);
+			shell.sed('-i', /.*__depends_on_test_db__.*/g, '', composeFile);
 		}
 	}
 	
@@ -185,7 +203,7 @@ class Setup
 	{
 		try
 		{
-			let source = __dirname+'/../templates/'+input.framework+'/*';
+			let source = __dirname+'/../templates/'+input.framework.short+'/*';
 			let destination = Config.dockerutilDir()+'/';
 			shell.mkdir('-p', destination);
 			shell.cp('-uR', source, destination);
@@ -203,7 +221,7 @@ class Setup
 	
 	updateProjectEnvironmentFile(input)
 	{
-		require(`./${input.framework}/Setup`).updateEnvFile(input);
+		require(`./${input.framework.short}/Setup`).updateEnvFile(input);
 	}
 	
 	

@@ -1,12 +1,12 @@
-  db:
+  db_test:
     image: "postgres:latest"
-    container_name: "db.${DOCKER_UTIL_CONTAINER_NAME}"
+    container_name: "test.db.${DOCKER_UTIL_CONTAINER_NAME}"
     ports:
-      - "__DATABASE_CONTAINER_PORT__:5432"
+      - "__TEST_DATABASE_CONTAINER_PORT__:5432"
     networks:
       - prj.network
     environment:
-      - POSTGRES_DB=${DOCKER_UTIL_DATABASE_NAME}
+      - POSTGRES_DB=${DOCKER_UTIL_TEST_DATABASE_NAME}
       - POSTGRES_USER=${DOCKER_UTIL_DATABASE_USERNAME}
       - POSTGRES_PASSWORD=${DOCKER_UTIL_DATABASE_PASSWORD}
     volumes:

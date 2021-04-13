@@ -1,5 +1,8 @@
 FROM elixir:alpine
 
+ENV MIX_ENV=test
+ENV ENV=test
+
 RUN mkdir /app
 
 # Install Phoenix packages

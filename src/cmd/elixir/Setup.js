@@ -1,4 +1,5 @@
 const shell = require('shelljs')
+const Env = require('../Env')
 
 class Setup
 {
@@ -10,21 +11,28 @@ class Setup
 	updateEnvFile(input)
 	{
 		let env = this.getProjectEnvFile();
+		if(!shell.test('-f', env)) shell.touch(env)
 		
-		if(shell.test('-f', env)) 
+		// DATABASE
+		Env.setProperty(env, 'DB_HOST',`db.${input.containerName}`);
+		Env.setProperty(env, 'DB_DATABASE', input.database.name);
+		Env.setProperty(env, 'DB_PORT', input.database.port);
+		Env.setProperty(env, 'DB_CONNECTION', input.database.connection);
+		
+		if(input._usesDatabase && input.database.isPostgres)
 		{
-			// DATABASE
-			shell.sed('-i', /DB_HOST=.*/g, `DB_HOST=db.${input.containerName}`, env);
-			shell.sed('-i', /DB_DATABASE=.*/g, `DB_DATABASE=${input.databaseName}`, env);
-			shell.sed('-i', /DB_PORT=.*/g, `DB_PORT=${input.databasePort}`, env);
-			shell.sed('-i', /DB_CONNECTION=.*/g, `DB_CONNECTION=${input.databaseConn}`, env);
-			shell.sed('-i', /DB_USERNAME=.*/g, 'DB_USERNAME=docker', env);
-			shell.sed('-i', /DB_PASSWORD=.*/g, 'DB_PASSWORD=secret', env);
-			
-			// CACHE
-			shell.sed('-i', /MEMCACHED_HOST=.*/g, `MEMCACHED_HOST=cache.${input.containerName}`, env);
-			shell.sed('-i', /REDIS_HOST=.*/g, `REDIS_HOST=cache.${input.containerName}`, env);
+			Env.setProperty(env, 'DB_USERNAME', 'postgres');
+			Env.setProperty(env, 'DB_PASSWORD', 'postgres');
 		}
+		else
+		{
+			Env.setProperty(env, 'DB_USERNAME', 'docker');
+			Env.setProperty(env, 'DB_PASSWORD', 'secret');
+		}
+		
+		// CACHE
+		Env.setProperty(env, 'MEMCACHED_HOST',`cache.${input.containerName}`);
+		Env.setProperty(env, 'REDIS_HOST',`cache.${input.containerName}`);
 	}
 }
 

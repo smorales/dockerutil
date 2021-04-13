@@ -17,10 +17,11 @@ class Docker {
 	test(options)
 	{
 		Config.setEnvProperty('env', 'test');
-		shell.cd(Config.dockerutilDir());
 		
 		let removeVolumes = options.removeVolumes ? '-v' : ''
 		let imageName = Config.getValue('IMAGE_NAME');
+		
+		shell.cd(Config.dockerutilDir());
 		let child = shell.exec(`docker-compose -p test_${imageName} up --build --exit-code-from test test`);
 		
 		shell.exec(`docker-compose -p test_${imageName} down ${removeVolumes}`);
@@ -38,13 +39,14 @@ class Docker {
 	up(target, options, command)
 	{
 		if(!target) target = 'dev';
+		else command.parent.args.pop();
 		
 		let imageName = Config.getValue('IMAGE_NAME');
 		let cmd = this.buildCommand(command, imageName, target);
 		
 		Config.setEnvProperty('env', target);
-		shell.cd(Config.dockerutilDir());
 		
+		shell.cd(Config.dockerutilDir());
 		shell.exec(cmd, {async:true});
 		
 		if(!options.detach)

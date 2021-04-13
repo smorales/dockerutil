@@ -43,21 +43,12 @@ class UserInput
 	
 	normalizeInput(input)
 	{
-		if(input.framework == 'Elixir/Phoenix') input.framework = 'elixir';
-		else if(input.framework == 'PHP/Laravel') input.framework = 'laravel';
-		
 		input._usesCache = input.usesRedis == 'yes';
 		input._usesDatabase = input._usesDatabase == 'yes';
 		input.runMigrateOnStartup = input.runMigrateOnStartup == 'yes';
 		
 		if(input._usesCache)
 			input.cache = "Redis";
-		
-		if(input._usesDatabase)
-		{
-			input.databasePort = input.database == 'PostgreSQL' ? '5432' : '3306';
-			input.databaseConn = input.database == 'PostgreSQL' ? 'pgsql' : 'mysql';
-		}
 	}
 	
 	confirmChoices(choices)
@@ -73,12 +64,17 @@ class UserInput
 			{
 				let value = choices[choice];
 				if(typeof value == 'boolean') value = value ? 'yes' : 'no';
+				if(choice == 'framework') value = choices[choice].name;
+				if(choice == 'database') value = choices[choice].type;
 				
 				let obj = {};
 				obj[ Str.toSeparatedWords(Str.capitalize(choice)) ] = value;
 				table.push(obj);
 			}
 		}
+		
+		// console.log(choices);
+		// process.exit();
 		
 		console.log("");
 		console.log("Dockerutil will initialize project with following setup:");
@@ -115,20 +111,41 @@ class UserInput
 				type: 'list',
 				name: 'framework',
 				message: "What's the project type?",
-				choices: ['Elixir/Phoenix','PHP/Laravel'],
+				choices: [
+					{
+						name: 'Elixir/Phoenix',
+						value: {
+							name: 'Elixir/Phoenix',
+							short: 'elixir',
+							isLaravel: false,
+							isLumen: false,
+							isElixir: true,
+						}
+					},
+					{
+						name: 'PHP/Laravel',
+						value: {
+							name: 'PHP/Laravel',
+							short: 'laravel',
+							isLaravel: true,
+							isLumen: false,
+							isElixir: false,
+						}
+					}
+				],
 			},
 			{
 				type: 'confirm',
 				name: 'useLatestPhoenixVersion',
 				message: 'Use latest Phoenix version?',
 				default: true,
-				when: function(answers) { return answers.framework == 'Elixir/Phoenix'; }
+				when: function(answers) { return answers.framework.isElixir; }
 			},
 			{
 				type: 'input',
 				name: 'usePhoenixVersion',
 				message: 'Which phoenix version should be used?',
-				when: function(answers) { return answers.framework == 'Elixir/Phoenix' && !answers.useLatestPhoenixVersion; },
+				when: function(answers) { return answers.framework.isElixir && !answers.useLatestPhoenixVersion; },
 				validate: function (val) {
 					const semver = require('semver');
 					return semver.valid(val) != null;
@@ -139,7 +156,7 @@ class UserInput
 				name: 'frameworksContainerPort',
 				message: 'On which port should the frameworks container be exposed?',
 				default: 4000,
-				when: function(answers) { return answers.framework == 'Elixir/Phoenix'; },
+				when: function(answers) { return answers.framework.isElixir; },
 				validate: function (val) {
 					return Number.isInteger(val) && val > 0 && val <= 65535;
 				},
@@ -149,7 +166,7 @@ class UserInput
 				name: 'frameworksContainerPort',
 				message: 'On which port should the frameworks container be exposed?',
 				default: 80,
-				when: function(answers) { return answers.framework == 'PHP/Laravel'; },
+				when: function(answers) { return answers.framework.isLaravel; },
 				validate: function (val) {
 					return Number.isInteger(val) && val > 0 && val <= 65535;
 				},
@@ -159,14 +176,14 @@ class UserInput
 				name: 'phpVersion',
 				message: 'Which PHP version should be used?',
 				choices: ['8.0', '7.4', '7.0'],
-				when: function(answers) { return answers.framework == 'PHP/Laravel'; },
+				when: function(answers) { return answers.framework.isLaravel; },
 			},
 			{
 				type: 'list',
 				name: 'runMigrateOnStartup',
 				message: 'Run `artisan migrate` on startup?',
 				choices: ['Yes', 'No'],
-				when: function(answers) { return answers.framework == 'PHP/Laravel'; },
+				when: function(answers) { return answers.framework.isLaravel; },
 				filter: function (val) { return val.toLowerCase(); },
 			},
 			{
@@ -180,7 +197,28 @@ class UserInput
 				type: 'list',
 				name: 'database',
 				message: 'Which database?',
-				choices: ['PostgreSQL', 'MySQL'],
+				choices: [
+					{
+						name: 'PostgreSQL',
+						value: {
+							type: 'PostgreSQL',
+							port: 5432,
+							connection: 'pgsql',
+							isPostgres: true,
+							isMysql: false,
+						}
+					},
+					{
+						name: 'MySQL',
+						value: {
+							type: 'MySQL',
+							port: 3306,
+							connection: 'mysql',
+							isPostgres: false,
+							isMysql: true,
+						}
+					}
+				],
 				when: function(answers) { return answers._usesDatabase == 'yes'; }
 			},
 			{
@@ -189,8 +227,15 @@ class UserInput
 				message: "What's the database name?",
 				when: function(answers) { return answers._usesDatabase == 'yes'; },
 				default: function (answers) {
-					return Str.toCase(answers.projectName, '_');
+					let suffix = '';
+					if(answers.framework.isElixir) 
+						suffix = '_dev';
+					return Str.toCase(answers.projectName, '_')+suffix;
 				},
+				filter: (val, answers) => {
+					answers.database.name = val;
+					return val;
+				}
 			},
 			{
 				type: 'number',
@@ -201,6 +246,10 @@ class UserInput
 				validate: function (val) {
 					return Number.isInteger(val) && val > 0 && val <= 65535;
 				},
+				filter: (val, answers) => {
+					answers.database.port = val;
+					return val;
+				}
 			},
 			{
 				type: 'number',
@@ -211,6 +260,10 @@ class UserInput
 				validate: function (val) {
 					return Number.isInteger(val) && val > 0 && val <= 65535;
 				},
+				filter: (val, answers) => {
+					answers.database.port = val;
+					return val;
+				}
 			},
 			{
 				type: 'list',

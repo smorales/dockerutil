@@ -16,8 +16,6 @@ services:
       context: ..
       dockerfile: ./__DOCKER_UTIL_DIR__/${DOCKER_UTIL_ENV}/Dockerfile
     container_name: "${DOCKER_UTIL_CONTAINER_NAME}"
-    environment:
-      - ENV=${DOCKER_UTIL_ENV}
     working_dir: /www
     ports:
       - "__FRAMEWORK_CONTAINER_PORT__:80"
@@ -32,11 +30,6 @@ services:
     container_name: "${DOCKER_UTIL_CONTAINER_NAME}"
     env_file:
       - ../.env
-    environment:
-      - ENV=${DOCKER_UTIL_ENV}
-      - DATABASE_HOST=${DOCKER_UTIL_DATABASE_HOST}
-      - TEST_HOST=${DOCKER_UTIL_DATABASE_HOST}
-      - REDIS_HOST=${DOCKER_UTIL_CACHE_HOST}
     ports:
       - "__FRAMEWORK_CONTAINER_PORT__:80"
     working_dir: /www
@@ -53,24 +46,25 @@ services:
       context: ..
       dockerfile: ./__DOCKER_UTIL_DIR__/${DOCKER_UTIL_ENV}/Dockerfile
     container_name: "${DOCKER_UTIL_CONTAINER_NAME}"
+    environment: 
+      - DB_DATABASE=${DOCKER_UTIL_TEST_DATABASE_NAME}
+      - DB_HOST=${DOCKER_UTIL_TEST_DATABASE_HOST}
+      - DB_PORT=${DOCKER_UTIL_TEST_DATABASE_PORT}
     env_file:
       - ../.env
-    environment:
-      - ENV=${DOCKER_UTIL_ENV}
-      - DATABASE_HOST=${DOCKER_UTIL_DATABASE_HOST}
-      - TEST_HOST=${DOCKER_UTIL_DATABASE_HOST}
-      - REDIS_HOST=${DOCKER_UTIL_CACHE_HOST}
     ports:
       - "__FRAMEWORK_CONTAINER_PORT__:80"
     working_dir: /www
     networks:
       - prj.network
     depends_on:
-      __depends_on_db__ 
+      __depends_on_test_db__ 
       __depends_on_cache__
     volumes:
       - ../:/www:delegated
   
     __DB_TEMPLATE__
+
+    __TEST_DB_TEMPLATE__
 
     __CACHE_TEMPLATE__
