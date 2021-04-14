@@ -53,13 +53,19 @@ class Docker {
 		{
 			process.on('SIGINT', () =>
 			{
-				shell.exec(`docker-compose -p ${imageName} down`);
+				let rmVolumes = options.removeVolumes ? '-v' : '';
+				shell.exec(`docker-compose -p ${imageName} down ${rmVolumes}`);
 			})
 		}
 	}
 	
 	buildCommand(command, imageName, appendix = '')
 	{
+		command.parent.args = command.parent.args.filter(flag => {
+			if(flag == '-rm' || flag == '--remove-volumes')
+				return false
+			return true;
+		});
 		return `docker-compose -p ${imageName} `+command.parent.args.join(' ')+' '+appendix;
 	}
 	

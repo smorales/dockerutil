@@ -131,6 +131,16 @@ class UserInput
 							isLumen: false,
 							isElixir: false,
 						}
+					},
+					{
+						name: 'PHP/Lumen',
+						value: {
+							name: 'PHP/Lumen',
+							short: 'lumen',
+							isLaravel: false,
+							isLumen: true,
+							isElixir: false,
+						}
 					}
 				],
 			},
@@ -166,7 +176,7 @@ class UserInput
 				name: 'frameworksContainerPort',
 				message: 'On which port should the frameworks container be exposed?',
 				default: 80,
-				when: function(answers) { return answers.framework.isLaravel; },
+				when: function(answers) { return answers.framework.isLaravel || answers.framework.isLumen; },
 				validate: function (val) {
 					return Number.isInteger(val) && val > 0 && val <= 65535;
 				},
@@ -176,7 +186,7 @@ class UserInput
 				name: 'phpVersion',
 				message: 'Which PHP version should be used?',
 				choices: ['8.0', '7.4', '7.0'],
-				when: function(answers) { return answers.framework.isLaravel; },
+				when: function(answers) { return answers.framework.isLaravel || answers.framework.isLumen; },
 			},
 			{
 				type: 'list',

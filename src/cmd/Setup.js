@@ -140,6 +140,10 @@ class Setup
 		{
 			return 'FROM catskillet/laravel-webstack:'+input.phpVersion;
 		}
+		else if(input.framework.isLumen) 
+		{
+			return 'FROM catskillet/laravel-webstack:'+input.phpVersion;
+		}
 		
 		console.error("Couldn't set docker base image.");
 		process.exit(1);

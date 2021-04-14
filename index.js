@@ -70,11 +70,13 @@ program
 program
 	.command('up [target]')
 	.option('-d, --detach', 'Runs the container in detached mode.')
+	.option('-rm, --remove-volumes', 'Removes after `down` all volumes. \n' +
+		'                            Incompatible with --detach.')
 	.option('--build', 'Build images before starting containers.')
 	.option('--exit-code-from <service>', 'Return the exit code of the selected service\n' +
-		'                           container. Implies --abort-on-container-exit.')
+		'                            container. Implies --abort-on-container-exit.')
 	.option('--abort-on-container-exit', 'Stops all containers if any container was\n' +
-		'                           stopped. Incompatible with --detach.')
+		'                            stopped. Incompatible with --detach.')
 	.description('Runs the application in a given environment, e.g dev or prod.')
 	.action((target, options, command) => {
 		require('./src/cmd/Docker').up(target, options, command)
