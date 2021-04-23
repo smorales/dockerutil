@@ -26,6 +26,7 @@ class Setup
 				projectName: 'Laravel Test',
 				framework: { 
 					name: 'PHP/Laravel',
+					short: 'laravel',
 					isLaravel: true,
 					isLumen: false,
 					isElixir: false 

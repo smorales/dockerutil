@@ -1,0 +1,70 @@
+version: "2.4"
+
+volumes:
+  prj.db:
+    driver: local
+
+networks:
+  prj.network:
+    driver: bridge
+
+services:
+
+  build:
+    image: "${DOCKER_UTIL_IMAGE_NAME}"
+    build:
+      context: ..
+      dockerfile: ./__DOCKER_UTIL_DIR__/${DOCKER_UTIL_ENV}/Dockerfile
+    container_name: "${DOCKER_UTIL_CONTAINER_NAME}"
+    working_dir: /www
+    ports:
+      - "__FRAMEWORK_CONTAINER_PORT__:80"
+      - "443:443"
+    volumes:
+      - ../:/www:delegated
+  
+  dev:
+    build:
+      context: ..
+      dockerfile: ./__DOCKER_UTIL_DIR__/${DOCKER_UTIL_ENV}/Dockerfile
+    container_name: "${DOCKER_UTIL_CONTAINER_NAME}"
+    env_file:
+      - ../.env
+    ports:
+      - "__FRAMEWORK_CONTAINER_PORT__:80"
+    working_dir: /www
+    networks:
+      - prj.network
+    depends_on:
+      __depends_on_db__
+      __depends_on_cache__
+    volumes:
+      - ../:/www:delegated
+  
+  test:
+    build:
+      context: ..
+      dockerfile: ./__DOCKER_UTIL_DIR__/${DOCKER_UTIL_ENV}/Dockerfile
+    container_name: "${DOCKER_UTIL_CONTAINER_NAME}"
+    environment: 
+      - DB_DATABASE=${DOCKER_UTIL_TEST_DATABASE_NAME}
+      - DB_HOST=${DOCKER_UTIL_TEST_DATABASE_HOST}
+      - DB_PORT=${DOCKER_UTIL_TEST_DATABASE_PORT}
+    env_file:
+      - ../.env
+    ports:
+      - "__FRAMEWORK_CONTAINER_PORT__:80"
+    working_dir: /www
+    networks:
+      - prj.network
+    depends_on:
+      __depends_on_test_db__ 
+      __depends_on_cache__
+    volumes:
+      - ../:/www:delegated
+  
+    __DB_TEMPLATE__
+
+    __TEST_DB_TEMPLATE__
+
+    __CACHE_TEMPLATE__

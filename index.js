@@ -98,6 +98,18 @@ program
 	);
 
 program
+	.command('build')
+	.option('-e, --export-image [directory]', 'If present then pack image as a tarball to the given folder.\n' +
+		'                              Default is current directory.')
+	.description('Builds an image for production.')
+	.action((options) => {
+		require('./src/cmd/Docker').buildImage(options)
+	})
+	.addHelpText('after', `\nExamples:
+  $ dockerutil test`
+	);
+
+program
 	.command("version [release-type]")
 	.option('-u, --update <version>', 'Updates the build number to the given version.')
 	.option('-s, --silent', 'Runs in silent mode.')

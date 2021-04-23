@@ -69,6 +69,29 @@ class Docker {
 		return `docker-compose -p ${imageName} `+command.parent.args.join(' ')+' '+appendix;
 	}
 	
+	buildImage(options)
+	{
+		Config.setEnvProperty('env', 'prod');
+		
+		let exportImage = options.exportImage;
+		let exportPath = options.exportImage && typeof options.exportImage!='boolean' ? options.exportImage : ".";
+		console.log('options:', options);
+		console.log('exportImage:', exportImage != undefined);
+		console.log('exportPath:', exportPath);
+		
+		let imageName = Config.getValue('IMAGE_NAME');
+		let buildNum = Config.getValue('BUILD_NUM');
+		
+		shell.cd(Config.dockerutilDir());
+		shell.exec(`docker-compose build build`);
+		
+		if(exportImage)
+		{
+			let tarBall = `${exportPath}/${imageName}-${buildNum}.tar`;
+			shell.cd('..');
+			shell.exec(`docker save -o ${tarBall} ${imageName}`);
+		}
+	}
 }
 
 module.exports = new Docker();
