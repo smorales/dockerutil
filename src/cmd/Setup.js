@@ -95,6 +95,7 @@ class Setup
 			spinner.succeed();
 			if(funcs.length > 0) this.runNextFunction(funcs, input, spinner);
 		}, 300);
+		
 	}
 	
 	cleanUpComposerFile()
@@ -227,6 +228,8 @@ class Setup
 	{
 		require(`./${input.framework.short}/Setup`).updateEnvFile(input);
 	}
+	
+	
 }
 
 module.exports = new Setup();
